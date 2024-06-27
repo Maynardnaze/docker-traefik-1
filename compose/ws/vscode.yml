@@ -3,28 +3,29 @@ services:
   vscode:
     image: lscr.io/linuxserver/code-server:latest
     container_name: vscode
-    security_opt:
-      - no-new-privileges:true
     restart: unless-stopped
-    profiles: ["apps", "all"]
+    profiles: ["core", "all"]
     networks:
-      - t2_proxy
+      - t3_proxy
+    ports:
+      - "8443:8443"
     volumes:
-      - $DOCKERDIR:/data/docker
-      - $USERDIR/server:/data/server
-      - $DATADIR:/data/data
-      - $DOCKERDIR/appdata/vscode:/config
+      - $DOCKERDIR/appdata/vscode/config:/config
+      - $DOCKERDIR:/home/andrew/docker-traefik
+      - $DOCKERDIR/vscode:/home/andrew/docker-traefik/vscode
+      #- $DATADIR:/mnt/storage
+      - /home/andrew:/home/andrew
+    privileged: true
     environment:
-      TZ: $TZ
-      PUID: $PUID
-      PGID: $PGID
-      # DOCKER_HOST: tcp://socket-proxy:2375
-      # PASSWORD: $VSCODE_PASSWORD
-      # HASHED_PASSWORD: #optional
-      # SUDO_PASSWORD: password #optional
-      # SUDO_PASSWORD_HASH: #optional
-      # PROXY_DOMAIN: code-server.my.domain #optional
-      DEFAULT_WORKSPACE: /config/data/User/Workspaces/AZ.code-workspace #optional
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Detroit
+     # - PASSWORD=password #optional
+     # - HASHED_PASSWORD= #optional
+#      - SUDO_PASSWORD=$SUDO_PASSWORD
+     # - SUDO_PASSWORD_HASH= #optional
+     # - PROXY_DOMAIN=code-server.my.domain #optional
+      - DEFAULT_WORKSPACE=/home/andrew/Workspaces/maynardnaze.code-workspace #optional
     labels:
       - "traefik.enable=true"
       # HTTP Routers
@@ -35,3 +36,4 @@ services:
       # HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
+
